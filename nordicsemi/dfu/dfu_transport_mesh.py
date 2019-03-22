@@ -299,6 +299,12 @@ class DfuTransportMesh(DfuTransport):
             self.send_packet(SerialPacket(pkt))
             self.log_progress(100.0 / float(frames_count))
             time.sleep(self.interval)
+            self.send_packet(SerialPacket(pkt))
+            self.log_progress(100.0 / float(frames_count))
+            time.sleep(self.interval)
+            self.send_packet(SerialPacket(pkt))
+            self.log_progress(100.0 / float(frames_count))
+            time.sleep(self.interval)
 
 
         while len(self.pending_packets) > 0:
