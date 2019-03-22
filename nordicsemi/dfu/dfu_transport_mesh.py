@@ -271,13 +271,18 @@ class DfuTransportMesh(DfuTransport):
         if len(firmware) % DfuTransportMesh.DFU_PACKET_MAX_SIZE > 0:
             fw_segments += 1
 
-        for segment in range(1, 1 + fw_segments):
-            data_packet = ''
-            data_packet += int16_to_bytes(MESH_DFU_PACKET_DATA)
-            data_packet += int16_to_bytes(segment)
-            data_packet += int32_to_bytes(self.tid)
-            data_packet += self.get_fw_segment(segment)
-            frames.append(data_packet)
+        for i in range(1, 1 + fw_segments, 16):
+            frames_seg = []
+            for segment in range(i, min(i+16, 1 + fw_segments)):
+                data_packet = ''
+                data_packet += int16_to_bytes(MESH_DFU_PACKET_DATA)
+                data_packet += int16_to_bytes(segment)
+                data_packet += int32_to_bytes(self.tid)
+                data_packet += self.get_fw_segment(segment)
+                frames_seg.append(data_packet)
+            for j in range(3):
+                for pkt in frames_seg:
+                    frames.append(pkt)
 
         # add signature at the end
         for (segment, i) in enumerate(range(0, self.info.sign_len, DfuTransportMesh.DFU_PACKET_MAX_SIZE)):
@@ -299,13 +304,6 @@ class DfuTransportMesh(DfuTransport):
             self.send_packet(SerialPacket(pkt))
             self.log_progress(100.0 / float(frames_count))
             time.sleep(self.interval)
-            self.send_packet(SerialPacket(pkt))
-            self.log_progress(100.0 / float(frames_count))
-            time.sleep(self.interval)
-            self.send_packet(SerialPacket(pkt))
-            self.log_progress(100.0 / float(frames_count))
-            time.sleep(self.interval)
-
 
         while len(self.pending_packets) > 0:
             time.sleep(0.01)
